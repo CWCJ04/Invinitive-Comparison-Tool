@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invinitive SIPP vs Current Provider</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f9f9f9;
+            color: #333;
+            padding: 40px;
+        }
+        h2 {
+            color: #005baa;
+        }
+        form {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        label {
+            margin-top: 15px;
+            display: block;
+            font-weight: 500;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #005baa;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #004a91;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #e6f0f8;
+            font-weight: bold;
+        }
+        p {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Invinitive SIPP Cost Comparison Tool</h2>
+    <form id="costForm">
+        <label>Current Value (£): <input type="number" id="currentValue" required></label>
+        <label>Annual Trust Fee (£): <input type="number" id="trustFee" required></label>
+        <label>Platform/Custody Fee (%): <input type="number" step="0.01" id="platformFee" required></label>
+        <label>Dealing Fees (per trade £): <input type="number" id="dealingFee" required></label>
+        <label>Number of Trades Per Year: <input type="number" id="numTrades" required></label>
+        <label>Annual Drawdown Fee (£ - optional): <input type="number" id="drawdownFee"></label>
+        <button type="button" onclick="calculateCosts()">Compare</button>
+    </form>
+
+    <div id="results"></div>
+
+    <script>
+        function calculateCosts() {
+            let currentValue = parseFloat(document.getElementById("currentValue").value);
+            let trustFee = parseFloat(document.getElementById("trustFee").value);
+            let platformFee = parseFloat(document.getElementById("platformFee").value) / 100; // convert to decimal
+            let dealingFee = parseFloat(document.getElementById("dealingFee").value);
+            let numTrades = parseInt(document.getElementById("numTrades").value);
+            let drawdownFee = parseFloat(document.getElementById("drawdownFee").value) || 0;
+
+            // Invinitive SIPP calculations (no drawdown fee)
+            let invTrustFee = currentValue < 50000 ? 0 : 150;
+            let invPlatformFee = Math.min(currentValue * 0.0025, 400);
+            let invDealingFee = 7.95 * numTrades;
+            let invDrawdownFee = 0;
+            let invTotal = invTrustFee + invPlatformFee + invDealingFee + invDrawdownFee;
+
+            // Current provider calculations
+            let currPlatformFee = platformFee * currentValue;
+            let currDealingFee = dealingFee * numTrades;
+            let currTotal = trustFee + currPlatformFee + currDealingFee + drawdownFee;
+
+            let savings = currTotal - invTotal;
+            let savingsPct = currTotal > 0 ? (savings / currTotal * 100) : 0;
+
+            document.getElementById("results").innerHTML = `
+                <table>
+                    <tr><th>Provider</th><th>Trust Fee (£)</th><th>Platform Fee (£)</th><th>Dealing Fees (£)</th><th>Drawdown (£)</th><th>Total Cost (£)</th></tr>
+                    <tr><td>Current Provider</td><td>${trustFee.toFixed(2)}</td><td>${currPlatformFee.toFixed(2)}</td><td>${currDealingFee.toFixed(2)}</td><td>${drawdownFee.toFixed(2)}</td><td>${currTotal.toFixed(2)}</td></tr>
+                    <tr><td>Invinitive SIPP</td><td>${invTrustFee.toFixed(2)}</td><td>${invPlatformFee.toFixed(2)}</td><td>${invDealingFee.toFixed(2)}</td><td>${invDrawdownFee.toFixed(2)}</td><td>${invTotal.toFixed(2)}</td></tr>
+                </table>
+                <p><strong>Savings: £${savings.toFixed(2)} (${savingsPct.toFixed(2)}%)</strong></p>
+            `;
+        }
+    </script>
+</body>
+</html>
